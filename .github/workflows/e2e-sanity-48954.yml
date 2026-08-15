@@ -1,0 +1,68 @@
+# Temporary verification workflow for PR #48954: end-to-end sanity check that
+# a package installed while the dev server runs becomes resolvable, on the
+# platforms where FallbackWatcher is the default (Linux and Windows).
+# The "base" variant reverts FallbackWatcher.ts to the pre-fix revision for a
+# best-effort red baseline; the race is probabilistic at this level, so those
+# legs report but do not gate. Delete this branch after the verification.
+name: 48954 install-while-running sanity
+
+on:
+  push:
+    branches: ['@brent/pr-48954-e2e-sanity']
+
+env:
+  SKIP_SKIA_DOWNLOAD: '1'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: expo
+
+jobs:
+  sanity:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+        variant: [fixed, base]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.variant == 'base' }}
+    timeout-minutes: 45
+    env:
+      EXPO_E2E_TEMP_DIR: ${{ matrix.os == 'windows-latest' && 'D:\_temp\expo-e2e' || '' }}
+      BUN_INSTALL_CACHE_DIR: ${{ matrix.os == 'windows-latest' && 'D:\_temp\bun' || '' }}
+      NPM_CACHE_LOCATION: ${{ matrix.os == 'windows-latest' && 'D:\_temp\npm' || '' }}
+    steps:
+      - name: 👀 Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 100
+
+      - name: ⏪ Revert FallbackWatcher to the pre-fix revision
+        if: matrix.variant == 'base'
+        shell: bash
+        run: |
+          git fetch origin a91ec7344096cccdf0d6030e281572ba747c004e --depth 1
+          git checkout a91ec7344096cccdf0d6030e281572ba747c004e -- packages/@expo/metro-file-map/src/watchers/FallbackWatcher.ts
+          git diff --stat
+
+      - name: 🔨 Install pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: 10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: 'pnpm'
+      - name: 🏗️ Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: '1.x'
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: 🔨 Build the CLI and its dependencies
+        run: pnpm turbo run build --filter=@expo/cli
+
+      - name: 🧪 Install-while-running sanity check
+        shell: bash
+        working-directory: packages/@expo/cli
+        run: pnpm test:e2e install-while-running --max-workers 1
