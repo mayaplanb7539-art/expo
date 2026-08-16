@@ -87,10 +87,19 @@ beforeAll(async () => {
           react: '19.2.3',
           'react-native': '0.86.2',
         },
+        // The issue's project is the TypeScript template. The dependency
+        // also keeps the CLI's TypeScript prerequisite deterministic.
+        devDependencies: {
+          typescript: '~6.0.3',
+        },
       },
       null,
       2
     )
+  );
+  await fs.writeFile(
+    path.join(projectRoot, 'tsconfig.json'),
+    JSON.stringify({ extends: 'expo/tsconfig.base', compilerOptions: {} }, null, 2)
   );
   await executeAsync(projectRoot, ['bun', 'install']);
 
