@@ -1791,7 +1791,6 @@ build:
 />
 
 #### `eas/start_ios_simulator`
-
 Starts an iOS Simulator you can use to test your apps on. Only available when running a build for iOS.
 
 ```yaml build-and-test.yml
@@ -1806,7 +1805,7 @@ build:
 ```
 
 | Input               | Type     | Required   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ------------------- | -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ------------------- | -------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `device_identifier` | `string` | <NoIcon /> | Name or UDID of the Simulator you want to start. Examples include `iPhone [XY] Pro`, `AEF997BB-222C-4379-89BA-D21070B1D787`.<br />**Note:** Available Simulators are different for every image. If you change the image, the Simulator for a given name may become unavailable. For instance, an Xcode 14 image will have iPhone 14 Simulators, while an Xcode 15 image will have iPhone 15 simulators. In general, we encourage not providing this input. See [runner images](/build/eas-json/#selecting-a-base-image) for more information. |
 
 <BoxLink
@@ -1814,7 +1813,7 @@ build:
   description="View the source code for the eas/start_ios_simulator function on GitHub."
   Icon={GithubIcon}
   href="https://github.com/expo/eas-cli/blob/main/packages/build-tools/src/steps/functions/startIosSimulator.ts"
-/>
+/
 
 #### `eas/send_slack_message`
 
